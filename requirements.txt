@@ -1,6 +1,6 @@
 alembic
 fastapi
-httpx2
+httpx
 psycopg[binary]
 pytest
 pydantic-settings
