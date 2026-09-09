@@ -4,5 +4,6 @@ httpx
 psycopg[binary]
 pytest
 pydantic-settings
+email-validator
 sqlalchemy
 uvicorn[standard]

@@ -1,6 +1,8 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
@@ -9,6 +11,7 @@ from app.schemas.customers import CustomerCreate, CustomerRead, CustomerUpdate
 
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.get("/health", tags=["system"])
@@ -39,6 +42,13 @@ def create_customer(payload: CustomerCreate, db: Session = Depends(get_db)) -> C
 	except IntegrityError:
 		db.rollback()
 		raise HTTPException(status_code=409, detail="A customer with this email already exists")
+	except SQLAlchemyError as exc:
+		db.rollback()
+		logger.exception("Failed to create customer")
+		raise HTTPException(
+			status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+			detail="Customer service is temporarily unavailable",
+		) from exc
 	db.refresh(customer)
 	return customer
 
